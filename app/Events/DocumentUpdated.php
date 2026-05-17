@@ -14,9 +14,12 @@ class DocumentUpdated implements ShouldBroadcastNow
 
     public $document;
 
-    public function __construct(Document $document)
+    public function __construct(
+        Document $document
+    )
     {
-        $this->document = $document;
+        $this->document =
+            $document;
     }
 
     public function broadcastOn(): array
@@ -24,7 +27,8 @@ class DocumentUpdated implements ShouldBroadcastNow
         return [
 
             new Channel(
-                'document.' . $this->document->id
+                'document.' .
+                $this->document->id
             )
 
         ];

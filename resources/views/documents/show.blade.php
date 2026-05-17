@@ -46,6 +46,19 @@ body{
     font-weight:bold;
 }
 
+.logout-box{
+    padding:20px;
+}
+
+.logout-btn{
+    padding:10px 16px;
+    border:none;
+    background:#ef4444;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+}
+
 .title-box{
     padding:20px;
     border-bottom:1px solid #e5e7eb;
@@ -54,8 +67,8 @@ body{
 .title-box label{
     display:block;
     margin-bottom:10px;
-    font-size:16px;
     color:#555;
+    font-size:16px;
 }
 
 #document-title{
@@ -77,13 +90,14 @@ body{
 }
 
 #toolbar button{
-    width:38px;
-    height:38px;
+    width:40px;
+    height:40px;
     border:none;
     border-radius:8px;
     background:#fff;
-    font-size:18px;
+    border:1px solid #ddd;
     cursor:pointer;
+    font-size:18px;
 }
 
 #toolbar button:hover{
@@ -92,16 +106,14 @@ body{
 
 #save-status{
     padding:16px 20px;
-    border-bottom:1px solid #e5e7eb;
-    font-size:15px;
-    font-weight:bold;
     color:#16a34a;
+    font-weight:bold;
 }
 
-#typing-status{
-    padding:10px 20px;
-    font-size:14px;
-    color:#666;
+#typing-indicator{
+    padding:0 20px 20px;
+    color:#2563eb;
+    font-weight:bold;
 }
 
 #editor{
@@ -111,13 +123,52 @@ body{
     line-height:1.8;
     outline:none;
     white-space:pre-wrap;
-    text-align:left;
     word-break:break-word;
+    border-top:1px solid #e5e7eb;
 }
 
 #editor:empty::before{
     content:"Start typing here...";
     color:#999;
+}
+
+.history-box{
+    padding:20px;
+    border-top:1px solid #e5e7eb;
+    background:#fafafa;
+}
+
+.history-box h3{
+    margin-bottom:14px;
+    font-size:24px;
+}
+
+.history-item{
+    padding:16px;
+    margin-bottom:14px;
+    background:#fff;
+    border:1px solid #ddd;
+    border-radius:10px;
+}
+
+.history-preview{
+    margin-top:10px;
+    line-height:1.6;
+    color:#555;
+}
+
+.restore-btn{
+    margin-top:12px;
+    padding:8px 14px;
+    border:none;
+    background:#2563eb;
+    color:white;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.restore-btn:hover{
+    background:#1d4ed8;
 }
 
 </style>
@@ -129,12 +180,42 @@ body{
 <div class="editor-box">
 
     <div class="editor-header">
-        <h1>Collaborative Document Editor</h1>
+
+        <h1>
+            Collaborative Document Editor
+        </h1>
+
     </div>
+
+    <!-- LOGOUT -->
+
+    <div class="logout-box">
+
+        <form
+            method="POST"
+            action="{{ route('logout') }}"
+        >
+
+            @csrf
+
+            <button
+                type="submit"
+                class="logout-btn"
+            >
+                Logout
+            </button>
+
+        </form>
+
+    </div>
+
+    <!-- TITLE -->
 
     <div class="title-box">
 
-        <label>Document Title</label>
+        <label>
+            Document Title
+        </label>
 
         <input
             type="text"
@@ -144,50 +225,58 @@ body{
 
     </div>
 
+    <!-- TOOLBAR -->
+
     <div id="toolbar">
 
         <button
             type="button"
-            onclick="formatDoc('bold')"
+            onclick="formatText('bold')"
         >
             <b>B</b>
         </button>
 
         <button
             type="button"
-            onclick="formatDoc('italic')"
+            onclick="formatText('italic')"
         >
             <i>I</i>
         </button>
 
         <button
             type="button"
-            onclick="formatDoc('underline')"
+            onclick="formatText('underline')"
         >
             <u>U</u>
         </button>
 
         <button
             type="button"
-            onclick="formatDoc('insertOrderedList')"
+            onclick="formatText('insertOrderedList')"
         >
             1.
         </button>
 
         <button
             type="button"
-            onclick="formatDoc('insertUnorderedList')"
+            onclick="formatText('insertUnorderedList')"
         >
             •
         </button>
 
     </div>
 
+    <!-- SAVE STATUS -->
+
     <div id="save-status">
         Saved
     </div>
 
-    <div id="typing-status"></div>
+    <!-- USER TYPING -->
+
+    <div id="typing-indicator"></div>
+
+    <!-- EDITOR -->
 
     <div
         id="editor"
@@ -195,30 +284,109 @@ body{
         spellcheck="false"
     >{!! $document->content !!}</div>
 
+    <!-- VERSION HISTORY -->
+
+    <div class="history-box">
+
+        <h3>
+            Version History
+        </h3>
+
+        @foreach($revisions as $revision)
+
+            <div class="history-item">
+
+                <strong>
+
+                    Edited by:
+
+                    {{ $revision->user->name ?? 'Unknown User' }}
+
+                </strong>
+
+                <br>
+
+                <small>
+                    {{ $revision->created_at }}
+                </small>
+
+                <div class="history-preview">
+
+                    <b>Changed content:</b>
+
+                    <br><br>
+
+                    {!! Illuminate\Support\Str::limit(
+                        strip_tags($revision->content),
+                        120
+                    ) !!}
+
+                </div>
+
+                <!-- RESTORE REVISION -->
+
+                <form
+                    method="POST"
+                    action="/revision/{{ $revision->id }}/restore"
+                >
+
+                    @csrf
+
+                    <button
+                        type="submit"
+                        class="restore-btn"
+                    >
+                        Restore Revision
+                    </button>
+
+                </form>
+
+            </div>
+
+        @endforeach
+
+    </div>
+
 </div>
 
 <script>
 
 const editor =
-    document.getElementById('editor');
+document.getElementById(
+    'editor'
+);
 
 const titleInput =
-    document.getElementById('document-title');
+document.getElementById(
+    'document-title'
+);
 
 const saveStatus =
-    document.getElementById('save-status');
+document.getElementById(
+    'save-status'
+);
 
-const typingStatus =
-    document.getElementById('typing-status');
+const typingIndicator =
+document.getElementById(
+    'typing-indicator'
+);
 
 let timeout;
 
-let typingTimeout;
+/* ENABLE RICH TEXT */
+
+document.execCommand(
+    'styleWithCSS',
+    false,
+    true
+);
 
 /* FORMAT */
 
-function formatDoc(command)
+function formatText(command)
 {
+    editor.focus();
+
     document.execCommand(
         command,
         false,
@@ -233,7 +401,7 @@ function formatDoc(command)
 function autoSave()
 {
     saveStatus.innerText =
-        'Saving...';
+    'Saving...';
 
     clearTimeout(timeout);
 
@@ -242,64 +410,47 @@ function autoSave()
         try{
 
             await fetch(
+                '/autosave',
+                {
 
-                '/documents/{{ $document->id }}/autosave',
+                    method:'POST',
 
-            {
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRF-TOKEN':'{{ csrf_token() }}'
+                    },
 
-                method:'POST',
+                    body:JSON.stringify({
 
-                headers:{
-                    'Content-Type':'application/json',
-                    'X-CSRF-TOKEN':'{{ csrf_token() }}'
-                },
+                        title:
+                        titleInput.value,
 
-                body:JSON.stringify({
+                        content:
+                        editor.innerHTML
 
-                    title:titleInput.value,
+                    })
 
-                    content:editor.innerHTML
-
-                })
-
-            });
+                }
+            );
 
             saveStatus.innerText =
-                'Saved';
+            'Saved';
 
         }catch(error){
 
             saveStatus.innerText =
-                'Failed';
+            'Failed';
 
         }
 
-    },200);
+    },300);
 }
 
 /* EVENTS */
 
 editor.addEventListener(
     'input',
-    () => {
-
-        typingStatus.innerText =
-            'Collaborator is typing...';
-
-        clearTimeout(
-            typingTimeout
-        );
-
-        typingTimeout =
-            setTimeout(() => {
-
-                typingStatus.innerText = '';
-
-            },1000);
-
-        autoSave();
-
-    }
+    autoSave
 );
 
 titleInput.addEventListener(
@@ -307,41 +458,32 @@ titleInput.addEventListener(
     autoSave
 );
 
-</script>
-
-<!-- REALTIME -->
-
-<script>
+/* REALTIME DOCUMENT */
 
 window.addEventListener(
     'load',
+
     () => {
 
         let isTyping = false;
 
         editor.addEventListener(
-            'input',
+            'focus',
             () => {
-
                 isTyping = true;
+            }
+        );
 
-                clearTimeout(
-                    window.typingTimer
-                );
-
-                window.typingTimer =
-                    setTimeout(() => {
-
-                        isTyping = false;
-
-                    },500);
-
+        editor.addEventListener(
+            'blur',
+            () => {
+                isTyping = false;
             }
         );
 
         window.Echo
         .channel(
-            'document.{{ $document->id }}'
+            'document.1'
         )
 
         .listen(
@@ -351,41 +493,93 @@ window.addEventListener(
 
                 if(!isTyping){
 
-                    if(
-                        editor.innerHTML !==
-                        e.document.content
-                    ){
-
-                        const selection =
-                            window.getSelection();
-
-                        const range =
-                            selection.rangeCount > 0
-                            ? selection.getRangeAt(0)
-                            : null;
-
-                        editor.innerHTML =
-                            e.document.content;
-
-                        if(range){
-
-                            selection.removeAllRanges();
-
-                            selection.addRange(range);
-                        }
-
-                    }
-
-                    titleInput.value =
-                        e.document.title;
+                    editor.innerHTML =
+                    e.document.content;
 
                 }
+
+                titleInput.value =
+                e.document.title;
 
             }
 
         );
 
     }
+);
+
+/* USER TYPING */
+
+let typingTimeoutSend;
+
+editor.addEventListener(
+
+    'keydown',
+
+    () => {
+
+        clearTimeout(
+            typingTimeoutSend
+        );
+
+        typingTimeoutSend =
+        setTimeout(() => {
+
+            fetch(
+                '/cursor',
+                {
+
+                    method:'POST',
+
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-CSRF-TOKEN':'{{ csrf_token() }}'
+                    },
+
+                    body:JSON.stringify({
+
+                        typing:true
+
+                    })
+
+                }
+
+            );
+
+        },200);
+
+    }
+
+);
+
+/* RECEIVE TYPING */
+
+window.Echo
+.channel('document.1')
+
+.listen(
+
+    '.cursor.moved',
+
+    () => {
+
+        typingIndicator.innerText =
+        'Another user is typing...';
+
+        clearTimeout(
+            window.typingTimeout
+        );
+
+        window.typingTimeout =
+        setTimeout(() => {
+
+            typingIndicator.innerText =
+            '';
+
+        },1200);
+
+    }
+
 );
 
 </script>

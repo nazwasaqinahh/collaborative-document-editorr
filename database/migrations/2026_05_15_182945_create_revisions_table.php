@@ -6,24 +6,37 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
-   public function up(): void
-{
-    Schema::create('revisions', function (Blueprint $table) {
-        $table->id();
-        $table->foreignId('document_id');
-        $table->longText('content');
-        $table->timestamps();
-    });
-}
+    public function up(): void
+    {
+        Schema::table(
 
-    /**
-     * Reverse the migrations.
-     */
+            'revisions',
+
+            function (Blueprint $table) {
+
+                $table->string(
+                    'user_name'
+                )->nullable();
+
+            }
+
+        );
+    }
+
     public function down(): void
     {
-        Schema::dropIfExists('revisions');
+        Schema::table(
+
+            'revisions',
+
+            function (Blueprint $table) {
+
+                $table->dropColumn(
+                    'user_name'
+                );
+
+            }
+
+        );
     }
 };

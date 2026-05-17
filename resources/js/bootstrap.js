@@ -2,7 +2,9 @@ import axios from 'axios';
 
 window.axios = axios;
 
-window.axios.defaults.headers.common['X-Requested-With'] = 'XMLHttpRequest';
+window.axios.defaults.headers.common[
+    'X-Requested-With'
+] = 'XMLHttpRequest';
 
 import Echo from 'laravel-echo';
 
@@ -16,14 +18,18 @@ window.Echo = new Echo({
 
     key: import.meta.env.VITE_REVERB_APP_KEY,
 
-    wsHost: '127.0.0.1',
+    wsHost: import.meta.env.VITE_REVERB_HOST,
 
-    wsPort: 8080,
+    wsPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
 
-    wssPort: 8080,
+    wssPort: import.meta.env.VITE_REVERB_PORT ?? 8080,
 
     forceTLS: false,
 
     enabledTransports: ['ws', 'wss'],
 
 });
+
+window.axios.defaults.headers.common[
+    'X-Socket-Id'
+] = window.Echo.socketId();
