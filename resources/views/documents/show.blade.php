@@ -553,7 +553,6 @@ editor.addEventListener(
 );
 
 /* RECEIVE TYPING */
-
 window.Echo
 .channel('document.1')
 
