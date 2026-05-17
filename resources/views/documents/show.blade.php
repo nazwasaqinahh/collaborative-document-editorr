@@ -226,7 +226,6 @@ body{
     </div>
 
     <!-- TOOLBAR -->
-
     <div id="toolbar">
 
         <button
