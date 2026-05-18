@@ -10,18 +10,19 @@ use App\Events\DocumentUpdated;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function documents()
     {
-        $document = Document::first();
+        $documents = Document::latest()->get();
 
-        if (!$document) {
+        return view(
+            'documents.index',
+            compact('documents')
+        );
+    }
 
-            $document = Document::create([
-                'title' => 'Real-Time Collaborative Document',
-                'content' => ''
-            ]);
-
-        }
+    public function show($id)
+    {
+        $document = Document::findOrFail($id);
 
         $revisions = Revision::where(
             'document_id',
@@ -40,48 +41,111 @@ class DocumentController extends Controller
         );
     }
 
-    public function autosave(Request $request)
+    public function create()
     {
-        $document = Document::first();
+        return view(
+            'documents.create'
+        );
+    }
+
+    public function store(Request $request)
+    {
+        $document = Document::create([
+
+            'title' => $request->title,
+
+            'content' => ''
+
+        ]);
+
+        return redirect(
+            '/documents/' .
+            $document->id
+        );
+    }
+
+    public function autosave(
+        Request $request,
+        $id
+    )
+    {
+        $document = Document::findOrFail($id);
 
         $document->update([
+
             'title' => $request->title,
+
             'content' => $request->content
+
         ]);
 
         Revision::create([
+
             'document_id' => $document->id,
+
             'content' => $request->content,
+
             'user_id' => Auth::id()
+
         ]);
 
         broadcast(
-            new DocumentUpdated($document)
+
+            new DocumentUpdated(
+
+                $document,
+
+                Auth::user()->name
+
+            )
+
         )->toOthers();
 
         return response()->json([
+
             'success' => true
+
         ]);
     }
 
-   public function restore($id)
-{
-    $revision = Revision::findOrFail($id);
+    public function restore($id)
+    {
+        $revision = Revision::findOrFail($id);
 
-    $document = Document::find(
-        $revision->document_id
-    );
+        $document = Document::find(
+            $revision->document_id
+        );
 
-    $document->update([
+        $document->update([
 
-        'content' => $revision->content
+            'content' => $revision->content
 
-    ]);
+        ]);
 
-    broadcast(
-        new DocumentUpdated($document)
-    )->toOthers();
+        broadcast(
 
-    return redirect('/');
-}
+            new DocumentUpdated(
+
+                $document,
+
+                Auth::user()->name
+
+            )
+
+        )->toOthers();
+
+        return redirect(
+            '/documents/' .
+            $document->id
+        );
+    }
+
+    public function destroy($id)
+    {
+        $document = Document::findOrFail($id);
+
+        $document->delete();
+
+        return redirect('/documents');
+    }
 }

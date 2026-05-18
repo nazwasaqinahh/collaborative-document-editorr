@@ -14,12 +14,13 @@ class DocumentUpdated implements ShouldBroadcastNow
 
     public $document;
 
-    public function __construct(
-        Document $document
-    )
+    public $user;
+
+    public function __construct($document, $user)
     {
-        $this->document =
-            $document;
+        $this->document = $document;
+
+        $this->user = $user;
     }
 
     public function broadcastOn(): array

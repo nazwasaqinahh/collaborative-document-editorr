@@ -65,14 +65,14 @@ Route::post(
 
     function () {
 
-        event(
+        broadcast(
 
             new CursorMoved(
                 0,
                 0
             )
 
-        );
+        )->toOthers();
 
         return response()->json([
 

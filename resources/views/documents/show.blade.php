@@ -107,13 +107,13 @@ body{
 #save-status{
     padding:16px 20px;
     color:#16a34a;
-    font-weight:bold;
+    font-weight:semi-bold;
 }
 
 #typing-indicator{
     padding:0 20px 20px;
-    color:#2563eb;
-    font-weight:bold;
+    color:#9ca3af;
+    font-weight:semi-bold;
 }
 
 #editor{
@@ -460,6 +460,7 @@ titleInput.addEventListener(
 /* REALTIME DOCUMENT */
 
 window.addEventListener(
+
     'load',
 
     () => {
@@ -481,30 +482,45 @@ window.addEventListener(
         );
 
         window.Echo
-        .channel(
-            'document.1'
-        )
+        .channel('document.1')
 
         .listen(
+
             '.document.updated',
 
             (e) => {
 
                 if(!isTyping){
 
+                    typingIndicator.innerText =
+                    e.user + ' is typing...';
+
+                    clearTimeout(
+                        window.typingTimeout
+                    );
+
+                    window.typingTimeout =
+                    setTimeout(() => {
+
+                        typingIndicator.innerText =
+                        '';
+
+                    },1200);
+
                     editor.innerHTML =
                     e.document.content;
 
-                }
+                    titleInput.value =
+                    e.document.title;
 
-                titleInput.value =
-                e.document.title;
+                }
 
             }
 
         );
 
     }
+
 );
 
 /* USER TYPING */
@@ -557,7 +573,7 @@ window.Echo
 
 .listen(
 
-    '.cursor.moved',
+    '.document.updated',
 
     () => {
 
