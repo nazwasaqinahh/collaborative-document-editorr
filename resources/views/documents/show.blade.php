@@ -46,19 +46,6 @@ body{
     font-weight:bold;
 }
 
-.logout-box{
-    padding:20px;
-}
-
-.logout-btn{
-    padding:10px 16px;
-    border:none;
-    background:#ef4444;
-    color:white;
-    border-radius:8px;
-    cursor:pointer;
-}
-
 .title-box{
     padding:20px;
     border-bottom:1px solid #e5e7eb;
@@ -107,7 +94,7 @@ body{
 #save-status{
     padding:16px 20px;
     color:#16a34a;
-    font-weight:semi-bold;
+    font-weight:bold;
 }
 
 #typing-indicator{
@@ -187,28 +174,6 @@ body{
 
     </div>
 
-    <!-- LOGOUT -->
-
-    <div class="logout-box">
-
-        <form
-            method="POST"
-            action="{{ route('logout') }}"
-        >
-
-            @csrf
-
-            <button
-                type="submit"
-                class="logout-btn"
-            >
-                Logout
-            </button>
-
-        </form>
-
-    </div>
-
     <!-- TITLE -->
 
     <div class="title-box">
@@ -226,6 +191,7 @@ body{
     </div>
 
     <!-- TOOLBAR -->
+
     <div id="toolbar">
 
         <button
@@ -322,8 +288,6 @@ body{
 
                 </div>
 
-                <!-- RESTORE REVISION -->
-
                 <form
                     method="POST"
                     action="/revision/{{ $revision->id }}/restore"
@@ -409,7 +373,9 @@ function autoSave()
         try{
 
             await fetch(
-                '/autosave',
+
+                '/documents/{{ $document->id }}/autosave',
+
                 {
 
                     method:'POST',
@@ -430,6 +396,7 @@ function autoSave()
                     })
 
                 }
+
             );
 
             saveStatus.innerText =
@@ -482,7 +449,9 @@ window.addEventListener(
         );
 
         window.Echo
-        .channel('document.1')
+        .channel(
+            'document.{{ $document->id }}'
+        )
 
         .listen(
 
@@ -518,79 +487,6 @@ window.addEventListener(
             }
 
         );
-
-    }
-
-);
-
-/* USER TYPING */
-
-let typingTimeoutSend;
-
-editor.addEventListener(
-
-    'keydown',
-
-    () => {
-
-        clearTimeout(
-            typingTimeoutSend
-        );
-
-        typingTimeoutSend =
-        setTimeout(() => {
-
-            fetch(
-                '/cursor',
-                {
-
-                    method:'POST',
-
-                    headers:{
-                        'Content-Type':'application/json',
-                        'X-CSRF-TOKEN':'{{ csrf_token() }}'
-                    },
-
-                    body:JSON.stringify({
-
-                        typing:true
-
-                    })
-
-                }
-
-            );
-
-        },200);
-
-    }
-
-);
-
-/* RECEIVE TYPING */
-window.Echo
-.channel('document.1')
-
-.listen(
-
-    '.document.updated',
-
-    () => {
-
-        typingIndicator.innerText =
-        'Another user is typing...';
-
-        clearTimeout(
-            window.typingTimeout
-        );
-
-        window.typingTimeout =
-        setTimeout(() => {
-
-            typingIndicator.innerText =
-            '';
-
-        },1200);
 
     }
 

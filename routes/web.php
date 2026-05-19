@@ -4,7 +4,6 @@ use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DocumentController;
 use Illuminate\Http\Request;
-use App\Events\CursorMoved;
 
 Route::get(
 
@@ -24,6 +23,8 @@ Route::middleware(
     'auth'
 )->group(function () {
 
+    /* PROFILE */
+
     Route::get(
         '/profile',
         [ProfileController::class, 'edit']
@@ -39,50 +40,87 @@ Route::middleware(
         [ProfileController::class, 'destroy']
     )->name('profile.destroy');
 
-    /* COLLABORATIVE EDITOR */
+    /* DOCUMENT LIST */
 
     Route::get(
+
         '/',
-        [DocumentController::class, 'index']
+
+        function(){
+
+            return redirect(
+                '/documents'
+            );
+
+        }
+
+    );
+
+    Route::get(
+
+        '/documents',
+
+        [DocumentController::class, 'documents']
+
+    );
+
+    /* CREATE DOCUMENT */
+
+    Route::get(
+
+        '/documents/create',
+
+        [DocumentController::class, 'create']
+
     );
 
     Route::post(
-        '/autosave',
+
+        '/documents/store',
+
+        [DocumentController::class, 'store']
+
+    );
+
+    /* OPEN DOCUMENT */
+
+    Route::get(
+
+        '/documents/{id}',
+
+        [DocumentController::class, 'show']
+
+    );
+
+    /* AUTOSAVE */
+
+    Route::post(
+
+        '/documents/{id}/autosave',
+
         [DocumentController::class, 'autosave']
+
+    );
+
+    /* DELETE DOCUMENT */
+
+    Route::delete(
+
+        '/documents/{id}',
+
+        [DocumentController::class, 'destroy']
+
     );
 
     /* DOCUMENT REVISION */
 
     Route::post(
+
         '/revision/{id}/restore',
+
         [DocumentController::class, 'restore']
+
     );
-
-    /* LIVE CURSOR TRACKING */
-Route::post(
-
-    '/cursor',
-
-    function () {
-
-        broadcast(
-
-            new CursorMoved(
-                0,
-                0
-            )
-
-        )->toOthers();
-
-        return response()->json([
-
-            'success' => true
-
-        ]);
-
-    }
-
-);
 
 });
 
